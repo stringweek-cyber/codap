@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CODAP으로 반별 성적 데이터 분석하기</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --teal: #0f9688;
+  --teal-dark: #0a7a6d;
+  --teal-light: #e0f5f3;
+  --orange: #f97316;
+  --orange-light: #fff7ed;
+  --green: #16a34a;
+  --green-light: #f0fdf4;
+  --bg: #f5f7f8;
+  --card: #ffffff;
+  --text: #1e293b;
+  --muted: #64748b;
+  --border: #e2e8f0;
+  --code-bg: #0f172a;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Noto Sans KR', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+}
+
+/* ── Header ── */
+header {
+  background: linear-gradient(135deg, #0f9688 0%, #0a7a6d 60%, #065f52 100%);
+  color: white;
+  padding: 48px 24px 56px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+header h1 {
+  font-size: clamp(1.4rem, 4vw, 2rem);
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  position: relative;
+}
+header .chip {
+  display: inline-block;
+  background: rgba(255,255,255,0.18);
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 30px;
+  padding: 4px 16px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 1px;
+  margin-bottom: 14px;
+  position: relative;
+}
+
+/* ── Nav ── */
+.nav-wrap {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+.nav {
+  max-width: 780px;
+  margin: 0 auto;
+  display: flex;
+  gap: 6px;
+  padding: 10px 20px;
+  overflow-x: auto;
+}
+.nav::-webkit-scrollbar { display: none; }
+.nav a {
+  flex-shrink: 0;
+  text-decoration: none;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  transition: all .2s;
+  white-space: nowrap;
+}
+.nav a:hover { background: var(--teal); color: white; border-color: var(--teal); }
+
+/* ── Layout ── */
+.container {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 28px 20px 60px;
+}
+
+/* ── Phase Block ── */
+.phase {
+  background: var(--card);
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  margin-bottom: 28px;
+  overflow: hidden;
+}
+.phase-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 22px 24px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(90deg, #f8fffe 0%, white 100%);
+}
+.phase-num {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: var(--teal);
+  color: white;
+  font-weight: 900;
+  font-size: 1.1rem;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.phase-title {
+  font-size: 1.18rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* ── Steps ── */
+.steps { padding: 20px 24px; }
+
+.step {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+  align-items: flex-start;
+}
+.step:last-child { margin-bottom: 0; }
+
+.step-badge {
+  flex-shrink: 0;
+  min-width: 28px; height: 28px;
+  border-radius: 8px;
+  background: var(--teal-light);
+  color: var(--teal-dark);
+  font-weight: 700;
+  font-size: 0.78rem;
+  display: flex; align-items: center; justify-content: center;
+  margin-top: 2px;
+}
+
+.step-body { flex: 1; }
+
+.step-label {
+  font-weight: 700;
+  font-size: 0.97rem;
+  color: var(--text);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.step-desc {
+  font-size: 0.9rem;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+/* ── Code row ── */
+.code-row {
+  background: var(--code-bg);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.code-label {
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #94a3b8;
+  background: rgba(255,255,255,0.08);
+  border-radius: 4px;
+  padding: 2px 7px;
+  margin-top: 2px;
+  letter-spacing: 0.5px;
+}
+.code-text {
+  flex: 1;
+  font-family: 'Courier New', monospace;
+  font-size: 0.82rem;
+  color: #7dd3fc;
+  word-break: break-all;
+  line-height: 1.5;
+}
+.copy-btn {
+  flex-shrink: 0;
+  background: var(--teal);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 5px 12px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Noto Sans KR', sans-serif;
+  transition: background .2s, transform .1s;
+  white-space: nowrap;
+}
+.copy-btn:hover { background: var(--teal-dark); }
+.copy-btn:active { transform: scale(0.96); }
+
+/* ── Tip box ── */
+.tip {
+  background: var(--orange-light);
+  border-left: 3px solid var(--orange);
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 0.88rem;
+  color: #7c2d12;
+  margin-bottom: 10px;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+.tip-icon { flex-shrink: 0; font-size: 1rem; margin-top: 1px; }
+
+/* ── Note box ── */
+.note {
+  background: var(--green-light);
+  border-left: 3px solid var(--green);
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 0.88rem;
+  color: #14532d;
+  margin-bottom: 10px;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+/* ── Link button ── */
+.link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--teal);
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  padding: 9px 18px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  transition: background .2s, transform .1s;
+  margin-top: 6px;
+}
+.link-btn:hover { background: var(--teal-dark); }
+.link-btn:active { transform: scale(0.97); }
+
+/* ── Image box ── */
+.img-box {
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin: 12px 0;
+}
+.img-box img {
+  width: 100%;
+  display: block;
+}
+.img-caption {
+  font-size: 0.78rem;
+  color: var(--muted);
+  padding: 8px 14px;
+  text-align: center;
+  border-top: 1px solid var(--border);
+  background: #f1f5f9;
+}
+
+/* ── Divider ── */
+.divider {
+  border: none;
+  border-top: 1px dashed var(--border);
+  margin: 18px 0;
+}
+
+/* ── Toast ── */
+#toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: #1e293b;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 50px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  opacity: 0;
+  transition: opacity .3s, transform .3s;
+  z-index: 9999;
+  pointer-events: none;
+  white-space: nowrap;
+}
+#toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ── Sub-step ── */
+.sub-steps {
+  padding-left: 12px;
+  border-left: 2px solid var(--teal-light);
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.sub-step {
+  font-size: 0.88rem;
+  color: var(--text);
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+.sub-dot {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--teal-light);
+  color: var(--teal-dark);
+  font-size: 0.65rem;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+}
+
+@media (max-width: 580px) {
+  .code-row { flex-direction: column; gap: 8px; }
+  .copy-btn { align-self: flex-end; }
+  .phase-header { padding: 18px 18px; }
+  .steps { padding: 16px 18px; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>CODAP으로 반별 성적 데이터 분석하기</h1>
+</header>
+
+<div class="nav-wrap">
+  <nav class="nav">
+    <a href="#sec1">1. 자료 정리</a>
+    <a href="#sec2">2. CODAP 그래프</a>
+  </nav>
+</div>
+
+<div class="container">
+
+  <!-- ══ PHASE 1 ══ -->
+  <div class="phase" id="sec1">
+    <div class="phase-header">
+      <div class="phase-num">1</div>
+      <div class="phase-title">자료 정리</div>
+    </div>
+    <div class="steps">
+
+      <!-- Step 1 -->
+      <div class="step">
+        <div class="step-badge">①</div>
+        <div class="step-body">
+          <div class="step-label">성적관리에서 파일 다운로드</div>
+          <div class="step-desc">성적관리 시스템에서 <strong>XLS data</strong> 형식으로 다운로드합니다.</div>
+          <div class="img-box">
+            <img src="1.png" alt="엑셀 data 다운로드 - XLS data 선택">
+            <div class="img-caption">▲ 저장 형식에서 <strong>XLS data</strong> 선택</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <!-- Step 2 -->
+      <div class="step">
+        <div class="step-badge">②</div>
+        <div class="step-body">
+          <div class="step-label">반 / 번호 / 익명 이름 열 생성</div>
+          <div class="tip">
+            <span class="tip-icon">🟧</span>
+            <span>1/1 형태인 데이터에서 <strong>오른쪽 열 2개(반, 번호)</strong>와 <strong>이름 오른쪽에 열 1개(익명이름)</strong>를 먼저 삽입하세요.</span>
+          </div>
+          <div class="step-desc">아래 수식을 해당 셀에 입력합니다.</div>
+
+          <div class="code-row">
+            <span class="code-label">반</span>
+            <span class="code-text">=LEFT(OFFSET(B2, 0, -1), FIND("/", OFFSET(B2, 0, -1))-1)</span>
+            <button class="copy-btn" onclick="copy('=LEFT(OFFSET(B2, 0, -1), FIND(\"/\", OFFSET(B2, 0, -1))-1)')">복사</button>
+          </div>
+
+          <div class="code-row">
+            <span class="code-label">번호</span>
+            <span class="code-text">=SUBSTITUTE(OFFSET(C2, 0, -2), LEFT(OFFSET(C2, 0, -2), FIND("/", OFFSET(C2, 0, -2))), "")</span>
+            <button class="copy-btn" onclick="copy('=SUBSTITUTE(OFFSET(C2, 0, -2), LEFT(OFFSET(C2, 0, -2), FIND(\"/\", OFFSET(C2, 0, -2))), \"\")')">복사</button>
+          </div>
+
+          <div class="code-row">
+            <span class="code-label">이름 익명</span>
+            <span class="code-text">=REPLACE(OFFSET(E2, 0, -1), 2, 1, "O")</span>
+            <button class="copy-btn" onclick="copy('=REPLACE(OFFSET(E2, 0, -1), 2, 1, \"O\")')">복사</button>
+          </div>
+
+          <div class="note">
+            <span>💡</span>
+            <span>수식 입력 후 셀 <strong>우하단 십자가(+)를 더블클릭</strong>하면 나머지 행에 수식이 자동으로 채워집니다.</span>
+          </div>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <!-- Step 3 -->
+      <div class="step">
+        <div class="step-badge">③</div>
+        <div class="step-body">
+          <div class="step-label">값으로 붙여넣기 (수식 → 값 변환)</div>
+          <div class="sub-steps">
+            <div class="sub-step">
+              <div class="sub-dot">1</div>
+              <span><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>↓</kbd> 로 전체 열 선택 → 복사</span>
+            </div>
+            <div class="sub-step">
+              <div class="sub-dot">2</div>
+              <span>같은 위치에 <strong>골라붙이기 → 값(V)</strong> 으로 붙여넣기 (수식이 숫자/텍스트로 고정됨)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <!-- Step 4 -->
+      <div class="step">
+        <div class="step-badge">④</div>
+        <div class="step-body">
+          <div class="step-label">데이터 정리 — 필요 없는 열·행 삭제</div>
+          <div class="step-desc">원본 <strong>1/1 형태의 반번호 열</strong>, 원본 이름 열 등 CODAP에 불필요한 데이터를 삭제합니다.</div>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <!-- Step 5 -->
+      <div class="step">
+        <div class="step-badge">⑤</div>
+        <div class="step-body">
+          <div class="step-label">CSV UTF-8 형식으로 저장</div>
+          <div class="step-desc">CODAP에서 불러올 수 있도록 반드시 <strong>CSV UTF-8</strong> 형식으로 저장합니다.</div>
+          <div class="img-box">
+            <img src="2.png" alt="CSV UTF-8 저장 방법">
+            <div class="img-caption">▲ 파일 → 다른 이름으로 저장 → 파일 형식: <strong>CSV UTF-8 문서 (*.csv)</strong> 선택 → 저장</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══ PHASE 2 ══ -->
+  <div class="phase" id="sec2">
+    <div class="phase-header">
+      <div class="phase-num">2</div>
+      <div class="phase-title">CODAP에서 그래프 만들기</div>
+    </div>
+    <div class="steps">
+
+      <!-- Step 1 -->
+      <div class="step">
+        <div class="step-badge">①</div>
+        <div class="step-body">
+          <div class="step-label">CODAP 사이트 접속 (로그인 불필요)</div>
+          <div class="step-desc">우상단 <strong>"CODAP을 시작하세요"</strong> 버튼을 클릭합니다.</div>
+          <a class="link-btn" href="https://codap.concord.org/" target="_blank">
+            🌐 CODAP 바로가기
+          </a>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <!-- Step 2 -->
+      <div class="step">
+        <div class="step-badge">②</div>
+        <div class="step-body">
+          <div class="step-label">CSV 파일 가져오기</div>
+          <div class="step-desc">좌상단 메뉴(≡) → <strong>가져오기</strong>를 클릭하여 저장한 CSV 파일을 불러옵니다.</div>
+          <div class="img-box">
+            <img src="3.png" alt="CODAP 가져오기 메뉴">
+            <div class="img-caption">▲ 메뉴(≡) → <strong>가져오기</strong> 클릭</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <!-- Step 3 -->
+      <div class="step">
+        <div class="step-badge">③</div>
+        <div class="step-body">
+          <div class="step-label">그래프 만들기 — 축에 데이터 드래그</div>
+          <div class="sub-steps">
+            <div class="sub-step">
+              <div class="sub-dot">1</div>
+              <span>상단 툴바에서 <strong>그래프</strong> 아이콘 클릭</span>
+            </div>
+            <div class="sub-step">
+              <div class="sub-dot">2</div>
+              <span>테이블에서 <strong>반</strong> 열 머리글을 → 그래프 <strong>가로축</strong>으로 드래그</span>
+            </div>
+            <div class="sub-step">
+              <div class="sub-dot">3</div>
+              <span>테이블에서 <strong>선택형</strong>(성적 점수) 열 머리글을 → 그래프 <strong>세로축</strong>으로 드래그</span>
+            </div>
+          </div>
+          <div class="img-box">
+            <img src="4.png" alt="CODAP 그래프 아이콘">
+            <div class="img-caption">▲ 상단 툴바 → <strong>그래프</strong> 아이콘 클릭</div>
+          </div>
+          <div class="img-box">
+            <img src="5.png" alt="반과 선택형 축에 드래그">
+            <div class="img-caption">▲ '반'을 가로축, '선택형'을 세로축으로 드래그</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <!-- Step 4 -->
+      <div class="step">
+        <div class="step-badge">④</div>
+        <div class="step-body">
+          <div class="step-label">반 데이터를 '범주형'으로 변환 후 평균값 표시</div>
+          <div class="sub-steps">
+            <div class="sub-step">
+              <div class="sub-dot">1</div>
+              <span>가로축 <strong>반</strong> 레이블 클릭 → 드롭다운에서 <strong>범주로 변환</strong> 선택</span>
+            </div>
+            <div class="sub-step">
+              <div class="sub-dot">2</div>
+              <span>우측 패널 <strong>붓 아이콘</strong> → <strong>주요 측정값</strong> → <strong>평균</strong> 체크</span>
+            </div>
+          </div>
+          <div class="img-box">
+            <img src="6.png" alt="범주로 변환 및 평균값 설정">
+            <div class="img-caption">▲ 반 → <strong>범주로 변환</strong> / 우측 패널 → <strong>평균</strong> 체크</div>
+          </div>
+          <div class="note">
+            <span>✅</span>
+            <span>이제 각 반별로 점수 데이터가 분리되어 표시되고, 평균선이 그래프에 나타납니다.</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<div id="toast">클립보드에 복사되었습니다!</div>
+
+<script>
+function copy(text) {
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(() => toast()).catch(() => fallback(text));
+  } else {
+    fallback(text);
+  }
+}
+
+function fallback(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;left:-9999px;top:0';
+  document.body.appendChild(ta);
+  ta.focus(); ta.select();
+  document.execCommand('copy');
+  document.body.removeChild(ta);
+  toast();
+}
+
+function toast() {
+  const el = document.getElementById('toast');
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2200);
+}
+</script>
+</body>
+</html>
