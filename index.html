@@ -224,6 +224,10 @@ header .chip {
 }
 .copy-btn:hover { background: var(--teal-dark); }
 .copy-btn:active { transform: scale(0.96); }
+.copy-btn.done {
+  background: var(--green);
+  pointer-events: none;
+}
 
 /* ── Tip box ── */
 .tip {
@@ -420,19 +424,19 @@ header .chip {
           <div class="code-row">
             <span class="code-label">반</span>
             <span class="code-text">=LEFT(OFFSET(B2, 0, -1), FIND("/", OFFSET(B2, 0, -1))-1)</span>
-            <button class="copy-btn" onclick="copy('=LEFT(OFFSET(B2, 0, -1), FIND(\"/\", OFFSET(B2, 0, -1))-1)')">복사</button>
+            <button class="copy-btn" data-formula='=LEFT(OFFSET(B2, 0, -1), FIND("/", OFFSET(B2, 0, -1))-1)' onclick="copyFormula(this)">복사</button>
           </div>
 
           <div class="code-row">
             <span class="code-label">번호</span>
             <span class="code-text">=SUBSTITUTE(OFFSET(C2, 0, -2), LEFT(OFFSET(C2, 0, -2), FIND("/", OFFSET(C2, 0, -2))), "")</span>
-            <button class="copy-btn" onclick="copy('=SUBSTITUTE(OFFSET(C2, 0, -2), LEFT(OFFSET(C2, 0, -2), FIND(\"/\", OFFSET(C2, 0, -2))), \"\")')">복사</button>
+            <button class="copy-btn" data-formula='=SUBSTITUTE(OFFSET(C2, 0, -2), LEFT(OFFSET(C2, 0, -2), FIND("/", OFFSET(C2, 0, -2))), "")' onclick="copyFormula(this)">복사</button>
           </div>
 
           <div class="code-row">
             <span class="code-label">이름 익명</span>
             <span class="code-text">=REPLACE(OFFSET(E2, 0, -1), 2, 1, "O")</span>
-            <button class="copy-btn" onclick="copy('=REPLACE(OFFSET(E2, 0, -1), 2, 1, \"O\")')">복사</button>
+            <button class="copy-btn" data-formula='=REPLACE(OFFSET(E2, 0, -1), 2, 1, "O")' onclick="copyFormula(this)">복사</button>
           </div>
 
           <div class="note">
@@ -594,11 +598,25 @@ header .chip {
 <div id="toast">클립보드에 복사되었습니다!</div>
 
 <script>
-function copy(text) {
+function copyFormula(btn) {
+  const text = btn.getAttribute('data-formula');
+  const doReact = () => {
+    btn.textContent = '복사완료 ✓';
+    btn.classList.add('done');
+    setTimeout(() => {
+      btn.textContent = '복사';
+      btn.classList.remove('done');
+    }, 2000);
+  };
+
   if (navigator.clipboard && window.isSecureContext) {
-    navigator.clipboard.writeText(text).then(() => toast()).catch(() => fallback(text));
+    navigator.clipboard.writeText(text).then(doReact).catch(() => {
+      fallback(text);
+      doReact();
+    });
   } else {
     fallback(text);
+    doReact();
   }
 }
 
@@ -610,13 +628,6 @@ function fallback(text) {
   ta.focus(); ta.select();
   document.execCommand('copy');
   document.body.removeChild(ta);
-  toast();
-}
-
-function toast() {
-  const el = document.getElementById('toast');
-  el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 2200);
 }
 </script>
 </body>
