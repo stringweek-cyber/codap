@@ -273,12 +273,17 @@ header .chip {
 .link-btn:active { transform: scale(0.97); }
 
 /* ── Image box ── */
+.img-wrap {
+  display: flex;
+  justify-content: center;
+  margin: 12px 0;
+}
 .img-box {
   background: #f8fafc;
   border: 1px solid var(--border);
   border-radius: 12px;
   overflow: hidden;
-  margin: 12px 0;
+  width: 100%;
 }
 .img-box img {
   width: 100%;
@@ -392,10 +397,10 @@ header .chip {
         <div class="step-body">
           <div class="step-label">성적관리에서 파일 다운로드</div>
           <div class="step-desc">성적관리 시스템에서 <strong>XLS data</strong> 형식으로 다운로드합니다.</div>
-          <div class="img-box" style="display:inline-block; width:40%;">
+          <div class="img-wrap"><div class="img-box" style="width:40%;">
             <img src="1.png" alt="엑셀 data 다운로드 - XLS data 선택">
             <div class="img-caption">▲ 저장 형식에서 <strong>XLS data</strong> 선택</div>
-          </div>
+          </div></div>
         </div>
       </div>
 
@@ -476,10 +481,10 @@ header .chip {
         <div class="step-body">
           <div class="step-label">CSV UTF-8 형식으로 저장</div>
           <div class="step-desc">CODAP에서 불러올 수 있도록 반드시 <strong>CSV UTF-8</strong> 형식으로 저장합니다.</div>
-          <div class="img-box">
+          <div class="img-wrap"><div class="img-box" style="width:80%;">
             <img src="2.png" alt="CSV UTF-8 저장 방법">
             <div class="img-caption">▲ 파일 → 다른 이름으로 저장 → 파일 형식: <strong>CSV UTF-8 문서 (*.csv)</strong> 선택 → 저장</div>
-          </div>
+          </div></div>
         </div>
       </div>
 
@@ -514,10 +519,10 @@ header .chip {
         <div class="step-body">
           <div class="step-label">CSV 파일 가져오기</div>
           <div class="step-desc">좌상단 메뉴(≡) → <strong>가져오기</strong>를 클릭하여 저장한 CSV 파일을 불러옵니다.</div>
-          <div class="img-box" style="display:inline-block; width:40%;">
+          <div class="img-wrap"><div class="img-box" style="width:40%;">
             <img src="3.png" alt="CODAP 가져오기 메뉴">
             <div class="img-caption">▲ 메뉴(≡) → <strong>가져오기</strong> 클릭</div>
-          </div>
+          </div></div>
         </div>
       </div>
 
@@ -542,14 +547,14 @@ header .chip {
               <span>테이블에서 <strong>선택형</strong>(성적 점수) 열 머리글을 → 그래프 <strong>세로축</strong>으로 드래그</span>
             </div>
           </div>
-          <div class="img-box">
+          <div class="img-wrap"><div class="img-box" style="width:60%;">
             <img src="4.png" alt="CODAP 그래프 아이콘">
             <div class="img-caption">▲ 상단 툴바 → <strong>그래프</strong> 아이콘 클릭</div>
-          </div>
-          <div class="img-box">
+          </div></div>
+          <div class="img-wrap"><div class="img-box" style="width:100%;">
             <img src="5.png" alt="반과 선택형 축에 드래그">
             <div class="img-caption">▲ '반'을 가로축, '선택형'을 세로축으로 드래그</div>
-          </div>
+          </div></div>
         </div>
       </div>
 
@@ -570,10 +575,10 @@ header .chip {
               <span>우측 패널 <strong>붓 아이콘</strong> → <strong>주요 측정값</strong> → <strong>평균</strong> 체크</span>
             </div>
           </div>
-          <div class="img-box">
+          <div class="img-wrap"><div class="img-box" style="width:80%;">
             <img src="6.png" alt="범주로 변환 및 평균값 설정">
             <div class="img-caption">▲ 반 → <strong>범주로 변환</strong> / 우측 패널 → <strong>평균</strong> 체크</div>
-          </div>
+          </div></div>
           <div class="note">
             <span>✅</span>
             <span>이제 각 반별로 점수 데이터가 분리되어 표시되고, 평균선이 그래프에 나타납니다.</span>
